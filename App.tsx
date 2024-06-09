@@ -1,7 +1,7 @@
 import React from "react";
+import { View } from "react-native";
 import {
   NativeBaseProvider,
-  View,
   Box,
   HStack,
   VStack,
@@ -9,11 +9,16 @@ import {
   Pressable,
   Image,
 } from "native-base";
+import { NativeWindStyleSheet } from "nativewind";
+
+NativeWindStyleSheet.setOutput({
+  default: "native",
+});
 
 export default function App() {
   return (
     <NativeBaseProvider>
-      <View className="flex-1 items-center justify-center">
+      <View className="flex-1 items-center justify-center bg-gray-200">
         <Box
           bg="primary.600"
           py="4"
@@ -22,6 +27,7 @@ export default function App() {
           rounded="md"
           width={375}
           maxWidth="100%"
+          className="shadow-lg"
         >
           <HStack justifyContent="space-between">
             <Box justifyContent="space-between">
@@ -39,6 +45,7 @@ export default function App() {
                 alignSelf="flex-start"
                 py="1"
                 px="3"
+                className="mt-2"
               >
                 <Text
                   textTransform="uppercase"
@@ -58,6 +65,7 @@ export default function App() {
               height="100"
               rounded="full"
               width="100"
+              className="ml-4"
             />
           </HStack>
         </Box>
