@@ -33,7 +33,7 @@ const TOKEN_KEY = "my-jwt";
 const STREAM_TOKEN_KEY = "stream-token";
 
 // Déclaration d'une constante pour l'URL de base de l'API.
-export const API_URL = "http://localhost:3333/api/auth";
+export const API_URL = "http://192.168.1.122:3333/api/auth";
 
 // Création d'un contexte d'authentification avec une valeur par défaut vide.
 const AuthContext = createContext<AuthProps>({});
