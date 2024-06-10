@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 // Importation des stacks
 import HomeStack from "@/screens/Stacks/HomeStack";
+import ChannelStack from "@/screens/Stacks/ChannelStack";
 import FriendStack from "@/screens/Stacks/FriendStack";
 
 export default function Connected() {
@@ -19,7 +20,7 @@ export default function Connected() {
         return focused ? "person" : "person-outline";
       case "Profil":
         return focused ? "person-circle" : "person-circle-outline";
-      case "Message":
+      case "Discussion":
         return focused ? "chatbubble" : "chatbubble-outline";
       default:
         return null;
@@ -56,6 +57,7 @@ export default function Connected() {
       >
         <Tab.Screen name="Accueil" component={HomeStack} />
         <Tab.Screen name="Amis" component={FriendStack} />
+        <Tab.Screen name="Discussion" component={ChannelStack} />
         {/* <Tab.Screen name="Profil" component={ProfilStack} /> */}
         {/* <Tab.Screen name="Message" component={MessageStack} /> */}
       </Tab.Navigator>

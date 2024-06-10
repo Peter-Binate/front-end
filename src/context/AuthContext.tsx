@@ -9,7 +9,16 @@ import * as SecureStore from "expo-secure-store";
 
 // Déclaration de l'interface pour les propriétés du contexte d'authentification.
 interface AuthProps {
-  authState?: { token: string | null; authenticated: boolean | null };
+  authState?: {
+    token: string | null;
+    authenticated: boolean | null;
+    streamToken?: string | null;
+    user?: {
+      id: string;
+      lastname: string;
+      profilImage?: string;
+    } | null;
+  };
   // Déclaration de la fonction pour l'enregistrement des utilisateurs.
   onRegister?: (email: string, password: string) => Promise<any>;
   // Déclaration de la fonction pour la connexion des utilisateurs.
@@ -21,8 +30,10 @@ interface AuthProps {
 // Déclaration d'une constante pour la clé utilisée pour stocker le token JWT.
 const TOKEN_KEY = "my-jwt";
 
+const STREAM_TOKEN_KEY = "stream-token";
+
 // Déclaration d'une constante pour l'URL de base de l'API.
-export const API_URL = "http://192.168.1.122:3333/api/auth";
+export const API_URL = "http://localhost:3333/api/auth";
 
 // Création d'un contexte d'authentification avec une valeur par défaut vide.
 const AuthContext = createContext<AuthProps>({});
@@ -38,21 +49,34 @@ export const AuthProvider = ({ children }: any) => {
   const [authState, setAuthState] = useState<{
     token: string | null;
     authenticated: boolean | null;
+    streamToken?: string | null; // Ajout d'une propriété pour le token de stream
+    user?: {
+      id: string;
+      lastname: string;
+      profilImage?: string;
+    } | null;
   }>({
     token: null,
     authenticated: null,
+    streamToken: null,
+    user: null,
   });
 
   // Utilisation du hook useEffect pour exécuter du code au montage du composant.
   useEffect(() => {
     // Déclaration d'une fonction asynchrone pour charger le token depuis SecureStore.
     const loadToken = async () => {
-      // Récupération du token stocké et affichage dans la console.
+      // Récupération du token user et du token stream stockés et affichage dans la console.
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
-      console.log("stored:", token);
+      const streamToken = await SecureStore.getItemAsync(STREAM_TOKEN_KEY);
 
-      // Si le token existe, il est ajouté aux en-têtes par défaut d'axios.
-      if (token) {
+      console.log(`
+        userToken stored:, ${token}
+        streamToken stored:, ${streamToken}
+        `);
+
+      // Si les token existent, il sont ajoutés aux en-têtes par défaut d'axios.
+      if (token && streamToken) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
 
@@ -60,6 +84,8 @@ export const AuthProvider = ({ children }: any) => {
       setAuthState({
         token: token,
         authenticated: !!token,
+        streamToken: streamToken,
+        user: authState.user, // Conserve l'utilisateur s'il est déjà défini
       });
     };
     // Appel de la fonction loadToken.
@@ -110,23 +136,33 @@ export const AuthProvider = ({ children }: any) => {
       const result = await axios.post(`${API_URL}/login`, { email, password });
       // Extraction du token de la réponse de l'API et affichage dans la console.
       const token = result.data.token.token;
-      const username = result.data.username;
+      const streamToken = result.data.streamToken;
+      const user = {
+        id: result.data.id,
+        lastname: result.data.lastname,
+        profilImage: result.data.profilImage,
+      }; // Extraire les champs de l'utilisateur depuis la réponse
       console.log(
         " ~ file: Authcontext.tsx:71 ~ login ~ result:",
-        result.data.token.token
+        token,
+        streamToken,
+        user
       );
 
       // Mise à jour de l'état authState avec le token et l'état d'authentification.
       setAuthState({
         token: token,
         authenticated: true,
+        streamToken: streamToken,
+        user: user,
       });
 
       // Ajout du token aux en-têtes par défaut d'axios.
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      // Stockage du token dans SecureStore.
+      // Stockage des token dans SecureStore.
       await SecureStore.setItemAsync(TOKEN_KEY, token);
+      await SecureStore.setItemAsync(STREAM_TOKEN_KEY, streamToken);
 
       // Retour des données de la réponse de l'API.
       return result;
@@ -149,12 +185,16 @@ export const AuthProvider = ({ children }: any) => {
   const logout = async () => {
     // Suppression du token de SecureStore.
     await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(STREAM_TOKEN_KEY);
+
     // Réinitialisation des en-têtes par défaut d'axios.
     axios.defaults.headers.common["Authorization"] = "";
     // Mise à jour de l'état authState pour refléter la déconnexion.
     setAuthState({
       token: null,
       authenticated: false,
+      streamToken: null,
+      user: null,
     });
   };
 
