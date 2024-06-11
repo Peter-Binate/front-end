@@ -28,12 +28,12 @@ interface AuthProps {
 }
 
 // Déclaration d'une constante pour la clé utilisée pour stocker le token JWT.
-const TOKEN_KEY = "my-jwt";
+const userTokenKey = process.env.EXPO_PUBLIC_TOKEN_KEY;
 
-const STREAM_TOKEN_KEY = "stream-token";
+const streamTokenKey = process.env.EXPO_PUBLIC_STREAM_TOKEN_KEY;
 
 // Déclaration d'une constante pour l'URL de base de l'API.
-export const API_URL = "http://192.168.1.122:3333/api/auth";
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 // Création d'un contexte d'authentification avec une valeur par défaut vide.
 const AuthContext = createContext<AuthProps>({});
@@ -67,12 +67,15 @@ export const AuthProvider = ({ children }: any) => {
     // Déclaration d'une fonction asynchrone pour charger le token depuis SecureStore.
     const loadToken = async () => {
       // Récupération du token user et du token stream stockés et affichage dans la console.
-      const token = await SecureStore.getItemAsync(TOKEN_KEY);
-      const streamToken = await SecureStore.getItemAsync(STREAM_TOKEN_KEY);
+      const token =
+        userTokenKey && (await SecureStore.getItemAsync(userTokenKey));
+      const streamToken =
+        streamTokenKey && (await SecureStore.getItemAsync(streamTokenKey));
 
       console.log(`
         userToken stored:, ${token}
         streamToken stored:, ${streamToken}
+        .env:, ${apiUrl}
         `);
 
       // Si les token existent, il sont ajoutés aux en-têtes par défaut d'axios.
@@ -82,7 +85,7 @@ export const AuthProvider = ({ children }: any) => {
 
       // Mise à jour de l'état authState avec le token et l'état d'authentification.
       setAuthState({
-        token: token,
+        token: token ? token : null,
         authenticated: !!token,
         streamToken: streamToken,
         user: authState.user, // Conserve l'utilisateur s'il est déjà défini
@@ -98,7 +101,7 @@ export const AuthProvider = ({ children }: any) => {
     try {
       console.log("Attempting to register with email:", email);
       // Envoi d'une requête POST à l'API pour enregistrer l'utilisateur avec email et password.
-      const response = await axios.post(`${API_URL}/register`, {
+      const response = await axios.post(`${apiUrl}/register`, {
         email,
         password,
       });
@@ -133,7 +136,7 @@ export const AuthProvider = ({ children }: any) => {
     }
     try {
       // Envoi d'une requête POST à l'API pour connecter l'utilisateur avec email et password.
-      const result = await axios.post(`${API_URL}/login`, { email, password });
+      const result = await axios.post(`${apiUrl}/login`, { email, password });
       // Extraction du token de la réponse de l'API et affichage dans la console.
       const token = result.data.token.token;
       const streamToken = result.data.streamToken;
@@ -161,8 +164,9 @@ export const AuthProvider = ({ children }: any) => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       // Stockage des token dans SecureStore.
-      await SecureStore.setItemAsync(TOKEN_KEY, token);
-      await SecureStore.setItemAsync(STREAM_TOKEN_KEY, streamToken);
+      userTokenKey && (await SecureStore.setItemAsync(userTokenKey, token));
+      streamTokenKey &&
+        (await SecureStore.setItemAsync(streamTokenKey, streamToken));
 
       // Retour des données de la réponse de l'API.
       return result;
@@ -184,8 +188,8 @@ export const AuthProvider = ({ children }: any) => {
   // Déclaration de la fonction asynchrone pour la déconnexion des utilisateurs.
   const logout = async () => {
     // Suppression du token de SecureStore.
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(STREAM_TOKEN_KEY);
+    userTokenKey && (await SecureStore.deleteItemAsync(userTokenKey));
+    streamTokenKey && (await SecureStore.deleteItemAsync(streamTokenKey));
 
     // Réinitialisation des en-têtes par défaut d'axios.
     axios.defaults.headers.common["Authorization"] = "";

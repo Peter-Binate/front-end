@@ -15,27 +15,12 @@ export const useChatClient = () => {
     const setupClient = async () => {
       if (authState?.user && authState.streamToken) {
         try {
-          // Décoder le token JWT pour vérifier l'ID utilisateur
-          const decodedToken = jwtDecode(authState.streamToken);
-          console.log("Decoded Token:", decodedToken);
-
-          if (decodedToken.user_id !== authState.user.id) {
-            throw new Error("User ID in JWT does not match authState.user.id");
-          }
-
-          console.log(
-            "Connecting user to Stream Chat with the following details:",
-            {
-              id: authState.user.id,
-              name: authState.user.lastname,
-              image: authState.user.profilImage,
-            }
-          );
+          console.log("Connection réussi!");
 
           // Connexion de l'utilisateur au client Chat en utilisant les informations d'authentification
           await chatClient.connectUser(
             {
-              id: authState.user.id,
+              id: authState.user.id.toString(),
               name: authState.user.lastname,
               image: authState.user.profilImage,
             },
@@ -46,6 +31,14 @@ export const useChatClient = () => {
           if (error instanceof Error) {
             console.error(
               `An error occurred while connecting the user: ${error.message}`
+            );
+            console.log(
+              "Connecting user to Stream Chat with the following details:",
+              {
+                id: authState.user.id.toString(),
+                name: authState.user.lastname,
+                image: authState.user.profilImage,
+              }
             );
           }
         }

@@ -123,8 +123,7 @@ const LoginScreen = () => {
                   fontWeight: "medium",
                   fontSize: "sm",
                 }}
-                href="SignUp"
-                // onPress={navigateToSignUpScreen}
+                onPress={navigateToSignUpScreen}
               >
                 S'inscrire
               </Link>
