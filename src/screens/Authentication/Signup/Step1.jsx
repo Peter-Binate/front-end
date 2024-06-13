@@ -23,7 +23,7 @@ const Step1 = () => {
     (state) => state.register.registerUserData
   );
   const navigation = useNavigation();
-  const { onRegister } = useAuth();
+  const { checkEmail } = useAuth();
 
   const [localEmail, setLocalEmail] = useState(email || "");
   const [localPassword, setLocalPassword] = useState(password || "");
@@ -45,6 +45,24 @@ const Step1 = () => {
       return;
     }
 
+    try {
+      const emailExists = await checkEmail(localEmail);
+      if (emailExists) {
+        setError("Cet email est déjà associé à un autre compte.");
+        AccessibilityInfo.announceForAccessibility(
+          "Erreur: Cet email est déjà associé à un autre compte."
+        );
+        return;
+      }
+    } catch (error) {
+      setError("Une erreur s'est produite lors de la vérification de l'email.");
+      AccessibilityInfo.announceForAccessibility(
+        "Erreur: Une erreur s'est produite lors de la vérification de l'email."
+      );
+      console.error("CheckMail error:", error);
+      return;
+    }
+
     // Si Mot de passe et confirmation de mot de passe sont différents
     if (localPassword !== confirmPassword) {
       setError("Les mots de passe ne correspondent pas.");
@@ -54,40 +72,11 @@ const Step1 = () => {
       return;
     }
 
-    try {
-      const response = await onRegister({
-        email: localEmail,
-        password: localPassword,
-      });
-
-      // Vérification si une erreur est renvoyée
-      if (response.error) {
-        // Mise à jour de l'état de l'erreur avec le message d'erreur
-        if (response.code === "E_EMAIL_EXISTS") {
-          setError("Cet email existe déjà. Veuillez en utiliser un autre.");
-        } else {
-          setError(response.msg);
-        }
-
-        // Annonce de l'erreur pour les utilisateurs ayant activé l'accessibilité vocale
-        AccessibilityInfo.announceForAccessibility(`Erreur: ${response.msg}`);
-      } else {
-        // Si aucune erreur n'est détectée
-        setError(""); // Réinitialisation de l'état de l'erreur
-
-        // Dispatch de l'action pour mettre à jour les données utilisateur enregistrées
-        dispatch(
-          setRegisterUserData({ email: localEmail, password: localPassword })
-        );
-
-        navigation.navigate("Step2");
-      }
-    } catch (error) {
-      setError("Une erreur s'est produite. Veuillez réessayer.");
-      AccessibilityInfo.announceForAccessibility(
-        "Une erreur s'est produite. Veuillez réessayer."
-      );
-    }
+    setError("");
+    dispatch(
+      setRegisterUserData({ email: localEmail, password: localPassword })
+    );
+    navigation.navigate("Step2");
   };
 
   const navigateToLoginScreen = () => {

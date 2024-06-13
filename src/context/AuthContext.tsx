@@ -112,19 +112,6 @@ export const AuthProvider = ({ children }: any) => {
       // Récupération des données d'erreur de la réponse de l'API.
       const errorResponse = e.response?.data;
 
-      // Vérifiez si l'erreur est liée à l'existence de l'email
-      if (
-        errorResponse.errors &&
-        errorResponse.errors.some(
-          (err: any) => err.rule === "database.unique" && err.field === "email"
-        )
-      ) {
-        return {
-          error: true,
-          code: "E_EMAIL_EXISTS",
-          msg: "Cet email est déjà associé à un autre compte.",
-        };
-      }
       // Si aucune erreur spécifique n'est renvoyée, on utilise un message d'erreur par défaut.
       const errors = errorResponse || [{ message: "Echec de l'inscription" }];
 
@@ -132,6 +119,17 @@ export const AuthProvider = ({ children }: any) => {
         error: true,
         msg: errors.map((err: any) => err.message).join("\n"),
       };
+    }
+  };
+
+  // Déclaration de la fonction asynchrone pour vérifier si un email existe déjà
+  const checkEmail = async (email: string) => {
+    try {
+      const response = await axios.post(`${apiUrl}/check-email`, { email });
+      return response.data.exists;
+    } catch (error) {
+      console.error("Email check error:", error);
+      throw error;
     }
   };
 
@@ -220,6 +218,7 @@ export const AuthProvider = ({ children }: any) => {
   // Création d'un objet contenant les fonctions d'enregistrement, de connexion, de déconnexion et l'état d'authentification.
   const value = {
     onRegister: register,
+    checkEmail: checkEmail,
     onLogin: login,
     onLogout: logout,
     authState,
