@@ -7,6 +7,8 @@ import axios from "axios";
 // Importation de SecureStore d'Expo pour stocker les données de manière sécurisée.
 import * as SecureStore from "expo-secure-store";
 
+import { useAppDispatch, useAppSelector } from "@/Redux/hooks";
+
 // Déclaration de l'interface pour les propriétés du contexte d'authentification.
 interface AuthProps {
   authState?: {
@@ -72,11 +74,11 @@ export const AuthProvider = ({ children }: any) => {
       const streamToken =
         streamTokenKey && (await SecureStore.getItemAsync(streamTokenKey));
 
-      console.log(`
-        userToken stored:, ${token}
-        streamToken stored:, ${streamToken}
-        .env:, ${apiUrl}
-        `);
+      // console.log(`
+      //   userToken stored:, ${token}
+      //   streamToken stored:, ${streamToken}
+      //   .env:, ${apiUrl}
+      //   `);
 
       // Si les token existent, il sont ajoutés aux en-têtes par défaut d'axios.
       if (token && streamToken) {
@@ -97,43 +99,44 @@ export const AuthProvider = ({ children }: any) => {
   }, []);
 
   // Déclaration de la fonction asynchrone pour l'enregistrement des utilisateurs.
-  const register = async (email: string, password: string) => {
+  const register = async (registerUserData: any) => {
     try {
-      console.log("Attempting to register with email:", email);
+      // console.log("Attempting to register with email:", email);
       // Envoi d'une requête POST à l'API pour enregistrer l'utilisateur avec email et password.
-      const response = await axios.post(`${apiUrl}/register`, {
-        email,
-        password,
-      });
+      const response = await axios.post(`${apiUrl}/register`, registerUserData);
       // Retour des données de la réponse de l'API.
       console.log("Registration response:", response);
+      return { error: false };
     } catch (e: any) {
       console.error("Registration error:", e.response.data);
       // Récupération des données d'erreur de la réponse de l'API.
       const errorResponse = e.response?.data;
+
+      // Vérifiez si l'erreur est liée à l'existence de l'email
+      if (
+        errorResponse.errors &&
+        errorResponse.errors.some(
+          (err: any) => err.rule === "database.unique" && err.field === "email"
+        )
+      ) {
+        return {
+          error: true,
+          code: "E_EMAIL_EXISTS",
+          msg: "Cet email est déjà associé à un autre compte.",
+        };
+      }
       // Si aucune erreur spécifique n'est renvoyée, on utilise un message d'erreur par défaut.
       const errors = errorResponse || [{ message: "Echec de l'inscription" }];
-      // Affichage d'une alerte avec les messages d'erreur concaténés.
-      alert(errors.map((err: any) => err.message).join("\n"));
-      // Retour d'un objet contenant les erreurs.
+
       return {
         error: true,
-        msg: errors,
+        msg: errors.map((err: any) => err.message).join("\n"),
       };
     }
   };
 
   // Déclaration de la fonction asynchrone pour la connexion des utilisateurs.
   const login = async (email: string, password: string) => {
-    // Affichage d'une alerte si email ou password sont manquants.
-    if (!email || !password) {
-      alert("L'email et le mot de passe sont obligatoires.");
-      // Retour d'un objet d'erreur.
-      return {
-        error: true,
-        msg: "L'email et le mot de passe sont obligatoires.",
-      };
-    }
     try {
       // Envoi d'une requête POST à l'API pour connecter l'utilisateur avec email et password.
       const result = await axios.post(`${apiUrl}/login`, { email, password });
@@ -145,12 +148,12 @@ export const AuthProvider = ({ children }: any) => {
         lastname: result.data.lastname,
         profilImage: result.data.profilImage,
       }; // Extraire les champs de l'utilisateur depuis la réponse
-      console.log(
-        " ~ file: Authcontext.tsx:71 ~ login ~ result:",
-        token,
-        streamToken,
-        user
-      );
+      // console.log(
+      //   " ~ file: Authcontext.tsx:71 ~ login ~ result:",
+      //   token,
+      //   streamToken,
+      //   user
+      // );
 
       // Mise à jour de l'état authState avec le token et l'état d'authentification.
       setAuthState({
@@ -168,38 +171,50 @@ export const AuthProvider = ({ children }: any) => {
       streamTokenKey &&
         (await SecureStore.setItemAsync(streamTokenKey, streamToken));
 
+      // Stocker les informations de chat dans le store Redux
+      // const dispatch = useAppDispatch();
+      // dispatch(setChatApiKey("jtfcmym6qund"));
+      // dispatch(setChatUserId(user.id));
+      // dispatch(setChatUserName(user.lastname));
+      // dispatch(setChatUserToken(streamToken));
+
       // Retour des données de la réponse de l'API.
       return result;
-    } catch (e: any) {
-      // Récupération des données d'erreur de la réponse de l'API.
-      const errorResponse = e.response?.data;
-      // Si aucune erreur spécifique n'est renvoyée, on utilise un message d'erreur par défaut.
-      const errors = errorResponse.errors || [
-        { message: "Echec de connexion" },
-      ];
-      // Retour d'un objet contenant les erreurs.
-      return {
-        error: true,
-        msg: errors,
-      };
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return {
+          error: error.response.data.error,
+          code: error.response.data.code,
+        };
+      }
+      return { error: "Une erreur s'est produite. Veuillez réessayer." };
     }
   };
 
   // Déclaration de la fonction asynchrone pour la déconnexion des utilisateurs.
   const logout = async () => {
-    // Suppression du token de SecureStore.
-    userTokenKey && (await SecureStore.deleteItemAsync(userTokenKey));
-    streamTokenKey && (await SecureStore.deleteItemAsync(streamTokenKey));
+    try {
+      // Envoi d'une requête DELETE à l'API pour déconnecter l'utilisateur.
+      await axios.delete(`${apiUrl}/logout`);
 
-    // Réinitialisation des en-têtes par défaut d'axios.
-    axios.defaults.headers.common["Authorization"] = "";
-    // Mise à jour de l'état authState pour refléter la déconnexion.
-    setAuthState({
-      token: null,
-      authenticated: false,
-      streamToken: null,
-      user: null,
-    });
+      // Suppression du token de SecureStore après déconnexion réussie.
+      userTokenKey && (await SecureStore.deleteItemAsync(userTokenKey));
+      streamTokenKey && (await SecureStore.deleteItemAsync(streamTokenKey));
+
+      // Réinitialisation des en-têtes par défaut d'axios.
+      axios.defaults.headers.common["Authorization"] = "";
+
+      // Mise à jour de l'état authState pour refléter la déconnexion.
+      setAuthState({
+        token: null,
+        authenticated: false,
+        streamToken: null,
+        user: null,
+      });
+    } catch (error: any) {
+      console.error("Logout error:", error);
+      return { error: "Failed to logout" };
+    }
   };
 
   // Création d'un objet contenant les fonctions d'enregistrement, de connexion, de déconnexion et l'état d'authentification.

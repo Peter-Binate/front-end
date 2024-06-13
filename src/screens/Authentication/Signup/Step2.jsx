@@ -1,13 +1,22 @@
 import React from "react";
-import { View, Text, TouchableOpacity, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  AccessibilityInfo,
+} from "react-native";
 import { useAppDispatch, useAppSelector } from "@/Redux/hooks";
 import { setRegisterUserData } from "@/Redux/Slices/registerSlice";
 import { useNavigation } from "@react-navigation/native";
+import { useAuth } from "@/context/AuthContext";
 
 const Step2 = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const { status } = useAppSelector((state) => state.register.registerUserData);
+  const { onRegister } = useAuth();
+  const [error, setError] = useState("");
 
   const handleStatusChange = (newStatus) => {
     console.log("Step2: handleStatusChange", newStatus);

@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import { Text, AccessibilityInfo } from "react-native";
 import {
   NativeBaseProvider,
   Center,
@@ -23,11 +15,18 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@/context/AuthContext";
 
+// Fonction de validation d'email
+const validateEmail = (email: string) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(String(email).toLowerCase());
+};
+
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { onLogin } = useAuth();
+  const [error, setError] = useState("");
 
+  const { onLogin } = useAuth();
   const navigation = useNavigation();
 
   const navigateToSignUpScreen = () => {
@@ -35,14 +34,46 @@ const LoginScreen = () => {
   };
 
   const login = async () => {
-    const result = await onLogin!(email, password);
-    if (result && result.error) {
-      Alert.alert(
-        "Login Error",
-        result.msg.map((err: any) => err.message).join("\n")
+    if (!email || !password) {
+      setError("Tous les champs sont obligatoires.");
+      AccessibilityInfo.announceForAccessibility(
+        "Erreur: Tous les champs sont obligatoires."
       );
-    } else {
-      console.log("Login successful");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError("Adresse email invalide.");
+      AccessibilityInfo.announceForAccessibility(
+        "Erreur: Adresse email invalide."
+      );
+      return;
+    }
+
+    try {
+      const result = await onLogin!(email, password);
+      if (result.error) {
+        if (result.code === "E_INVALID_CREDENTIALS") {
+          setError("Identifiants invalides");
+          AccessibilityInfo.announceForAccessibility(
+            "Erreur: Identifiants invalides"
+          );
+        } else {
+          setError(result.msg || result.error);
+          AccessibilityInfo.announceForAccessibility(
+            `Erreur: ${result.msg || result.error}`
+          );
+        }
+      } else {
+        console.log("Login successful");
+        setError("");
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      setError("Une erreur s'est produite. Veuillez réessayer.");
+      AccessibilityInfo.announceForAccessibility(
+        "Une erreur s'est produite. Veuillez réessayer."
+      );
     }
   };
 
@@ -73,25 +104,28 @@ const LoginScreen = () => {
           </Heading>
 
           <VStack space={3} mt="5">
-            <FormControl>
+            <FormControl isInvalid={!!error}>
               <FormControl.Label ml="2.5">Votre Email</FormControl.Label>
               <Input
                 value={email}
-                onChangeText={(text: string) => setEmail(text)}
+                onChangeText={(text) => setEmail(text)}
                 placeholder="Votre Email"
                 variant="rounded"
               />
             </FormControl>
-            <FormControl>
+            <FormControl isInvalid={!!error}>
               <FormControl.Label ml="2.5">Votre mot de passe</FormControl.Label>
               <Input
                 type="password"
                 value={password}
-                onChangeText={(text: string) => setPassword(text)}
+                onChangeText={(text) => setPassword(text)}
                 placeholder="Mot de passe"
                 variant="rounded"
                 colorScheme="indigo"
               />
+              {error ? (
+                <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>
+              ) : null}
               <Link
                 _text={{
                   fontSize: "xs",
@@ -104,7 +138,12 @@ const LoginScreen = () => {
                 Mot de passe / identifiant oublié ?
               </Link>
             </FormControl>
-            <Button mt="2" colorScheme="indigo" onPress={login}>
+            <Button
+              mt="2"
+              colorScheme="indigo"
+              onPress={login}
+              isDisabled={!email || !password}
+            >
               Connexion
             </Button>
             <HStack mt="6" justifyContent="center">
@@ -133,50 +172,6 @@ const LoginScreen = () => {
       </Center>
     </NativeBaseProvider>
   );
-  // <SafeAreaView style={{ flex: 1, marginTop: 100 }}>
-  //   <View className="m-5">
-  //     <Text className="text-2xl font-bold border-2 border-red-300">
-  //       Login
-  //     </Text>
-  //     <View>
-  //       <TextInput
-  //         value={email}
-  //         onChangeText={(text: string) => setEmail(text)}
-  //         placeholder="Email"
-  //       />
-  //       <TextInput
-  //         value={password}
-  //         onChangeText={(text: string) => setPassword(text)}
-  //         placeholder="Password"
-  //         secureTextEntry
-  //       />
-  //       <TouchableOpacity onPress={login} style={styles.loginButton}>
-  //         <Text style={styles.loginButtonText}>Se connecter</Text>
-  //       </TouchableOpacity>
-  //     </View>
-  //     <TouchableOpacity
-  //       className="flex-row items-center m-4"
-  //       onPress={navigateToSignUpScreen}
-  //     >
-  //       <Text className="text-primaryRed underline mx-3">S'inscrire</Text>
-  //     </TouchableOpacity>
-  //   </View>
-  // </SafeAreaView>
-  //);
 };
-
-const styles = StyleSheet.create({
-  loginButton: {
-    backgroundColor: "green",
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
-    margin: 10,
-  },
-  loginButtonText: {
-    color: "white",
-    fontSize: 16,
-  },
-});
 
 export default LoginScreen;

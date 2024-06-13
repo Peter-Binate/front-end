@@ -1,10 +1,12 @@
 // store.ts
 import { configureStore } from "@reduxjs/toolkit";
 import registerReducer from "@/Redux/Slices/registerSlice";
+import chatReducer from "@/Redux/Slices/chatSlice";
 
 const store = configureStore({
   reducer: {
-    register: registerReducer, // Assurez-vous que le nom ici correspond à ce que vous utilisez dans useAppSelector
+    register: registerReducer,
+    chat: chatReducer,
   },
 });
 

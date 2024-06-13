@@ -8,14 +8,14 @@ import { SafeAreaView, View, Text } from "react-native";
 
 const FriendScreen = () => {
   // On renvoie la data dans notre store
-  const dispatch = useAppDispatch();
-  dispatch(setRegisterUserData({ firstname: "Peter", lastname: "Zigouin" }));
+  // const dispatch = useAppDispatch();
+  // dispatch(setRegisterUserData({ firstname: "Peter", lastname: "Zigouin" }));
 
-  // On récupère la donnée de notre slice
-  const data = useAppSelector((state) => state.registerSlice.registerUserData);
+  // // On récupère la donnée de notre slice
+  // const data = useAppSelector((state) => state.registerSlice.registerUserData);
 
-  // envoie les données à la base de données avec axios.post
-  console.log(data);
+  // // envoie les données à la base de données avec axios.post
+  // console.log(data);
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View className="m-5">
