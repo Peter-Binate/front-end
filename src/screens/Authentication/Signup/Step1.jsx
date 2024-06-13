@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Text, AccessibilityInfo } from "react-native";
+import * as yup from "yup";
+import { useFormik } from "formik";
 import {
   NativeBaseProvider,
   Center,
@@ -17,6 +19,30 @@ import { setRegisterUserData } from "@/Redux/Slices/registerSlice";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@/context/AuthContext";
 
+// Schéma de validation avec yup
+const schema = yup.object().shape({
+  email: yup
+    .string()
+    .email("Le format de l'email est invalide.")
+    .required("L'email est obligatoire."),
+  password: yup
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères.")
+    .matches(/[a-z]/, "Le mot de passe doit contenir une minuscule.")
+    .matches(/[A-Z]/, "Le mot de passe doit contenir une majuscule.")
+    .matches(/[0-9]/, "Le mot de passe doit contenir un chiffre.")
+    .matches(
+      /[@$!%*?/.&]/,
+      "Le mot de passe doit contenir un caractère spécial."
+    ),
+  confirmPassword: yup
+    .string()
+    .oneOf(
+      [yup.ref("password"), null],
+      "Les mots de passe ne correspondent pas."
+    ),
+});
+
 const Step1 = () => {
   const dispatch = useAppDispatch();
   const { email, password } = useAppSelector(
@@ -25,59 +51,55 @@ const Step1 = () => {
   const navigation = useNavigation();
   const { checkEmail } = useAuth();
 
-  const [localEmail, setLocalEmail] = useState(email || "");
-  const [localPassword, setLocalPassword] = useState(password || "");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const formik = useFormik({
+    initialValues: {
+      email: email || "",
+      password: password || "",
+      confirmPassword: "",
+    },
+    validationSchema: schema,
+    // Fonction asynchrone pour gérer la soumission du formulaire d'inscription
+    onSubmit: async (values) => {
+      try {
+        // On vérifie que l'email n'est pas déjà associé à un compte utilisateur
+        const emailExists = await checkEmail(values.email);
+        if (emailExists) {
+          formik.setFieldError(
+            "email",
+            "Cet email est déjà associé à un autre compte."
+          );
+          AccessibilityInfo.announceForAccessibility(
+            "Erreur: Cet email est déjà associé à un autre compte."
+          );
+          return;
+        }
+        dispatch(
+          setRegisterUserData({
+            email: values.email,
+            password: values.password,
+          })
+        );
+        navigation.navigate("Step2");
+      } catch (error) {
+        formik.setFieldError(
+          "email",
+          "Une erreur s'est produite lors de la vérification de l'email."
+        );
+        AccessibilityInfo.announceForAccessibility(
+          "Erreur: Une erreur s'est produite lors de la vérification de l'email."
+        );
+        console.error("CheckMail error:", error);
+      }
+    },
+  });
 
   useEffect(() => {
-    setLocalEmail(email || "");
-    setLocalPassword(password || "");
+    formik.setValues({
+      email: email || "",
+      password: password || "",
+      confirmPassword: "",
+    });
   }, [email, password]);
-
-  // Fonction asynchrone pour gérer la soumission du formulaire d'inscription
-  const handleNext = async () => {
-    if (!localEmail || !localPassword || !confirmPassword) {
-      setError("Tous les champs sont obligatoires.");
-      AccessibilityInfo.announceForAccessibility(
-        "Erreur: Tous les champs sont obligatoires."
-      );
-      return;
-    }
-
-    try {
-      const emailExists = await checkEmail(localEmail);
-      if (emailExists) {
-        setError("Cet email est déjà associé à un autre compte.");
-        AccessibilityInfo.announceForAccessibility(
-          "Erreur: Cet email est déjà associé à un autre compte."
-        );
-        return;
-      }
-    } catch (error) {
-      setError("Une erreur s'est produite lors de la vérification de l'email.");
-      AccessibilityInfo.announceForAccessibility(
-        "Erreur: Une erreur s'est produite lors de la vérification de l'email."
-      );
-      console.error("CheckMail error:", error);
-      return;
-    }
-
-    // Si Mot de passe et confirmation de mot de passe sont différents
-    if (localPassword !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas.");
-      AccessibilityInfo.announceForAccessibility(
-        "Erreur: Les mots de passe ne correspondent pas."
-      );
-      return;
-    }
-
-    setError("");
-    dispatch(
-      setRegisterUserData({ email: localEmail, password: localPassword })
-    );
-    navigation.navigate("Step2");
-  };
 
   const navigateToLoginScreen = () => {
     navigation.navigate("Login");
@@ -109,39 +131,66 @@ const Step1 = () => {
             Sign up to continue!
           </Heading>
           <VStack space={3} mt="5">
-            <FormControl isInvalid={!!error}>
+            <FormControl
+              isInvalid={!!formik.errors.email && formik.touched.email}
+            >
               <FormControl.Label>Email</FormControl.Label>
-              <Input value={localEmail} onChangeText={setLocalEmail} />
-              {!!error && !localEmail && (
-                <FormControl.ErrorMessage>{error}</FormControl.ErrorMessage>
+              <Input
+                value={formik.values.email}
+                onChangeText={formik.handleChange("email")}
+                onBlur={formik.handleBlur("email")}
+              />
+              {formik.errors.email && formik.touched.email && (
+                <FormControl.ErrorMessage>
+                  {formik.errors.email}
+                </FormControl.ErrorMessage>
               )}
             </FormControl>
-            <FormControl isInvalid={!!error}>
+            <FormControl
+              isInvalid={!!formik.errors.password && formik.touched.password}
+            >
               <FormControl.Label>Mot de passe</FormControl.Label>
               <Input
-                value={localPassword}
-                onChangeText={setLocalPassword}
+                value={formik.values.password}
+                onChangeText={formik.handleChange("password")}
+                onBlur={formik.handleBlur("password")}
                 secureTextEntry
                 type="password"
               />
+              {formik.errors.password && formik.touched.password && (
+                <FormControl.ErrorMessage>
+                  {formik.errors.password}
+                </FormControl.ErrorMessage>
+              )}
             </FormControl>
-            <FormControl isInvalid={!!error}>
+            <FormControl
+              isInvalid={
+                !!formik.errors.confirmPassword &&
+                formik.touched.confirmPassword
+              }
+            >
               <FormControl.Label>
                 Confirmation du mot de passe
               </FormControl.Label>
               <Input
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                value={formik.values.confirmPassword}
+                onChangeText={formik.handleChange("confirmPassword")}
+                onBlur={formik.handleBlur("confirmPassword")}
                 secureTextEntry
                 type="password"
               />
+              {formik.errors.confirmPassword &&
+                formik.touched.confirmPassword && (
+                  <FormControl.ErrorMessage>
+                    {formik.errors.confirmPassword}
+                  </FormControl.ErrorMessage>
+                )}
             </FormControl>
-            {error ? <Text style={{ color: "red" }}>{error}</Text> : null}
             <Button
               mt="2"
               colorScheme="indigo"
-              onPress={handleNext}
-              isDisabled={!localEmail || !localPassword || !confirmPassword}
+              onPress={formik.handleSubmit}
+              isDisabled={!formik.isValid || !formik.dirty}
             >
               Suivant
             </Button>

@@ -117,7 +117,9 @@ export const AuthProvider = ({ children }: any) => {
 
       return {
         error: true,
-        msg: errors.map((err: any) => err.message).join("\n"),
+        msg: Array.isArray(errors)
+          ? errors.map((err: any) => err.message).join("\n")
+          : errors.message,
       };
     }
   };
