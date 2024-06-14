@@ -1,18 +1,19 @@
-// // Récupérer les datas de l'utilisateur
+// //Récupérer les datas de l'utilisateur
 // import { useEffect } from "react";
+// import axios from "axios";
 
-// export async function getUserData() {
+// export async function getSportsList() {
 //   try {
 //     const response = await axios
 //       .get("http://localhost:3333/api/friendship/accept-friend")
-//       .json();
+//       .JSON();
 //     return response;
 //   } catch (error) {
 //     console.error(error);
 //   }
 // }
 
-// // Puis sur ProfilScreen:
+// //Puis sur ProfilScreen:
 // useEffect(async () => {
-//   const userData = await getUserData();
+//   const userData = await getSportsList();
 // });

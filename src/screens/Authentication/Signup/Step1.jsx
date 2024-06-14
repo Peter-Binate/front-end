@@ -24,7 +24,8 @@ const schema = yup.object().shape({
   email: yup
     .string()
     .email("Le format de l'email est invalide.")
-    .required("L'email est obligatoire."),
+    .required("L'email est obligatoire.")
+    .transform((value) => value.toLowerCase()), // Forcer les emails en minuscules
   password: yup
     .string()
     .min(8, "Le mot de passe doit contenir au moins 8 caractères.")
@@ -61,8 +62,10 @@ const Step1 = () => {
     // Fonction asynchrone pour gérer la soumission du formulaire d'inscription
     onSubmit: async (values) => {
       try {
+        // Forcer l'email en minuscules avant de vérifier
+        const emailToCheck = values.email.toLowerCase();
         // On vérifie que l'email n'est pas déjà associé à un compte utilisateur
-        const emailExists = await checkEmail(values.email);
+        const emailExists = await checkEmail(emailToCheck);
         if (emailExists) {
           formik.setFieldError(
             "email",
@@ -75,7 +78,7 @@ const Step1 = () => {
         }
         dispatch(
           setRegisterUserData({
-            email: values.email,
+            email: emailToCheck,
             password: values.password,
           })
         );

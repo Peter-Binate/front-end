@@ -1,12 +1,12 @@
 // store.ts
 import { configureStore } from "@reduxjs/toolkit";
 import registerReducer from "@/Redux/Slices/registerSlice";
-import chatReducer from "@/Redux/Slices/chatSlice";
+import sportSessionReducer from "@/Redux/Slices/sportSessionSlice";
 
 const store = configureStore({
   reducer: {
     register: registerReducer,
-    chat: chatReducer,
+    sportSession: sportSessionReducer,
   },
 });
 
