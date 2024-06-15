@@ -33,7 +33,7 @@ const schema = yup.object().shape({
     .matches(/[A-Z]/, "Le mot de passe doit contenir une majuscule.")
     .matches(/[0-9]/, "Le mot de passe doit contenir un chiffre.")
     .matches(
-      /[@$!%*?/.&]/,
+      /[@$!%*?/+-.&]/,
       "Le mot de passe doit contenir un caractère spécial."
     ),
   confirmPassword: yup
@@ -61,11 +61,16 @@ const Step1 = () => {
     validationSchema: schema,
     // Fonction asynchrone pour gérer la soumission du formulaire d'inscription
     onSubmit: async (values) => {
+      console.log("Submitting values:", values.email.toLocaleLowerCase());
+
       try {
         // Forcer l'email en minuscules avant de vérifier
         const emailToCheck = values.email.toLowerCase();
+        console.log("emailToCheck: ", emailToCheck);
+
         // On vérifie que l'email n'est pas déjà associé à un compte utilisateur
         const emailExists = await checkEmail(emailToCheck);
+        console.log("emailExists: ", emailExists);
         if (emailExists) {
           formik.setFieldError(
             "email",
@@ -92,6 +97,7 @@ const Step1 = () => {
           "Erreur: Une erreur s'est produite lors de la vérification de l'email."
         );
         console.error("CheckMail error:", error);
+        console.log("email: ", email);
       }
     },
   });
@@ -100,7 +106,7 @@ const Step1 = () => {
     formik.setValues({
       email: email || "",
       password: password || "",
-      confirmPassword: "",
+      confirmPassword: formik.values.confirmPassword,
     });
   }, [email, password]);
 

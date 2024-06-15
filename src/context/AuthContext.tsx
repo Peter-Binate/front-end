@@ -128,7 +128,9 @@ export const AuthProvider = ({ children }: any) => {
   // Déclaration de la fonction asynchrone pour vérifier si un email existe déjà
   const checkEmail = async (email: string) => {
     try {
-      const response = await axios.post(`${apiUrl}/check-email`, { email });
+      const response = await axios.post(`${apiUrl}/api/auth/check-email`, {
+        email,
+      });
       return response.data.exists;
     } catch (error) {
       console.error("Email check error:", error);
