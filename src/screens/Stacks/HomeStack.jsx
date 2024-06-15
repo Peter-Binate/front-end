@@ -16,7 +16,7 @@ const HomeStack = () => {
         headerShown: false,
       }}
     >
-      {/* <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen
         name="FirstStepSportSessionPage"
         component={FirstStepScreen}
@@ -36,7 +36,7 @@ const HomeStack = () => {
       <Stack.Screen
         name="FifthStepSportSessionPage"
         component={FifthStepScreen}
-      /> */}
+      />
       <Stack.Screen
         name="LastSportSessionPage"
         component={LastSportSessionScreen}
