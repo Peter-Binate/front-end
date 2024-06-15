@@ -16,15 +16,24 @@ const SecondStepScreen = () => {
   const dispatch = useAppDispatch();
   const userData = useAppSelector((state) => state.sportSession);
   const [maxParticipants, setMaxParticipants] = useState("");
-  const [difficultyLevel, setDifficultyLevel] = useState("none");
+  const [difficultyLevel, setDifficultyLevel] = useState("aucun");
   const [onlyBlindOrVisuallyImpaired, setOnlyBlindOrVisuallyImpaired] =
     useState(false);
+  const [error, setError] = useState("");
 
   const handleNext = () => {
+    // On vérifie que le nombre maximum de participant est strictement compris entre 1 et 0
+    const participants = parseInt(maxParticipants, 10);
+
+    if (isNaN(participants) || participants < 1 || participants > 30) {
+      setError("Le nombre de participants doit être compris entre 1 et 30.");
+      return;
+    }
+
     if (maxParticipants) {
       dispatch(
         setSportSessionData({
-          maxParticipants: parseInt(maxParticipants, 10), // ensure it's a number
+          maxParticipants: participants, // ensure it's a number
           difficultyLevel,
           onlyBlindOrVisuallyImpaired,
         })
@@ -51,6 +60,7 @@ const SecondStepScreen = () => {
             marginVertical: 10,
           }}
         />
+        {error ? <Text style={{ color: "red" }}>{error}</Text> : null}
         <Text>Difficulty Level</Text>
         <TouchableOpacity
           onPress={() => setDifficultyLevel("aucun")}
