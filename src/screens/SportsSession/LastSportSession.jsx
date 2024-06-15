@@ -78,7 +78,7 @@ const LastSportSessionScreen = () => {
       });
       Alert.alert(
         "Session supprimée",
-        "La session de sport a été supprimée avec succès.",
+        "Cette session de sport a été supprimée avec succès.",
         [
           {
             text: "retourner à l'Accueil",

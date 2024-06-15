@@ -7,6 +7,8 @@ interface SportSessionState {
     difficultyLevel?: string;
     description?: string;
     location?: string;
+    latitude?: number;
+    longitude?: number;
     startDate?: Date;
     onlyBlindOrVisuallyImpaired?: boolean;
   };
