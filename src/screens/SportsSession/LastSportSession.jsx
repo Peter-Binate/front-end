@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, Image } from "react-native";
 import sportIcons from "./sportsIcons";
-import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 
@@ -10,7 +9,6 @@ const LastSportSessionScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const navigation = useNavigation();
   const { authState } = useAuth();
 
   useEffect(() => {
@@ -51,18 +49,46 @@ const LastSportSessionScreen = () => {
     (icon) => icon.id === session.sport.id
   )?.icon;
 
+  // Trouver l'administrateur de la session
+  const admin = session.members.find(
+    (member) => member.isAdmin && member.isAccepted
+  );
+
   return (
     <View style={styles.container}>
+      <View>
+        {admin && (
+          <>
+            {admin.user.profilImage && (
+              <Image
+                source={{ uri: admin.user.profilImage }}
+                style={{ width: 50, height: 50 }}
+              />
+            )}
+          </>
+        )}
+        <Text>{admin.user.firstname}</Text>
+        <Text>{admin.user.lastname}</Text>
+      </View>
       {sportIcon && <Text style={{ fontSize: 30 }}>{sportIcon}</Text>}
+
       <Text style={styles.title}>{session.sport.sportName}</Text>
-      <Text>Nombre de participants: {session.members.length}</Text>
-      <Text>
-        Description:{" "}
-        {session.description || "Pas de description pour l'instant."}
-      </Text>
-      <Text>Localisation: {session.location}</Text>
       <Text>Date: {new Date(session.startDate).toLocaleDateString()}</Text>
-      <Text>Heure: {new Date(session.startDate).toLocaleTimeString()}</Text>
+      <View>
+        <Text>Heure: {new Date(session.startDate).toLocaleTimeString()}</Text>
+        <Text>Localisation: {session.location}</Text>
+      </View>
+      <View>
+        <Text>
+          Nombre de participants: {session.members.length} /{" "}
+          {session.maxParticipants}
+        </Text>
+      </View>
+      <View>
+        <Text>
+          {session.description || "Pas de description pour l'instant."}
+        </Text>
+      </View>
     </View>
   );
 };
