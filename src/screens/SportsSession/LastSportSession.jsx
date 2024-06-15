@@ -59,6 +59,12 @@ const LastSportSessionScreen = () => {
     fetchLastSession();
   }, []);
 
+  const handleEditSession = () => {
+    dispatch(setSportSessionData(session)); // Charger les données de la session dans Redux
+    dispatch(setIsEditing(true)); // Définir le mode édition à vrai
+    navigation.navigate("FirstStepSportSessionPage"); // Naviguer vers la première étape du formulaire
+  };
+
   const handleDeleteSession = async () => {
     const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/sport-session/delete/`;
     try {
@@ -110,14 +116,6 @@ const LastSportSessionScreen = () => {
     (member) => member.isAdmin && member.isAccepted
   );
 
-  // Préparer les données pour l'édition
-  const handleEditSession = () => {
-    dispatch(setSportSessionData(session)); // Préparer les données pour le formulaire
-    dispatch(setIsEditing(true)); // Définir le mode édition
-    // Naviguer vers le formulaire de session
-    navigation.navigate("FirstStepSportSessionPage");
-  };
-
   return (
     <View style={styles.container}>
       <View>
@@ -154,14 +152,7 @@ const LastSportSessionScreen = () => {
         </Text>
       </View>
       <View>
-        <Button
-          title="Modifier"
-          onPress={() =>
-            navigation.navigate("EditSportSessionPage", {
-              sessionData: session,
-            })
-          }
-        />
+        <Button title="Modifier" onPress={handleEditSession} />
         <Button title="Supprimer" onPress={handleDeleteSession} color="red" />
       </View>
     </View>

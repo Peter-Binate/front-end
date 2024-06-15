@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   Text,
@@ -7,13 +7,23 @@ import {
   View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useAppDispatch } from "@/Redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/Redux/hooks";
 import { setSportSessionData } from "@/Redux/Slices/sportSessionSlice";
 
 const FourthStepScreen = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
-  const [location, setLocation] = useState("");
+  const sportSessionData = useAppSelector(
+    (state) => state.sportSession.sportSessionData
+  );
+  const [location, setLocation] = useState(sportSessionData.location || "");
+
+  useEffect(() => {
+    // Update local state if editing an existing session
+    if (sportSessionData.location) {
+      setLocation(sportSessionData.location);
+    }
+  }, [sportSessionData.location]);
 
   const handleNext = () => {
     if (location) {

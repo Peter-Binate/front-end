@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   TextInput,
@@ -14,34 +14,42 @@ import { setSportSessionData } from "@/Redux/Slices/sportSessionSlice";
 const SecondStepScreen = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
-  const userData = useAppSelector((state) => state.sportSession);
-  const [maxParticipants, setMaxParticipants] = useState("");
-  const [difficultyLevel, setDifficultyLevel] = useState("aucun");
+  const { sportSessionData } = useAppSelector((state) => state.sportSession);
+
+  const [maxParticipants, setMaxParticipants] = useState(
+    sportSessionData.maxParticipants?.toString() || ""
+  );
+  const [difficultyLevel, setDifficultyLevel] = useState(
+    sportSessionData.difficultyLevel || "aucun"
+  );
   const [onlyBlindOrVisuallyImpaired, setOnlyBlindOrVisuallyImpaired] =
-    useState(false);
+    useState(sportSessionData.onlyBlindOrVisuallyImpaired || false);
   const [error, setError] = useState("");
 
-  const handleNext = () => {
-    // On vérifie que le nombre maximum de participant est strictement compris entre 1 et 0
-    const participants = parseInt(maxParticipants, 10);
+  // Écouter les changements dans le Redux store et mettre à jour l'état local
+  useEffect(() => {
+    setMaxParticipants(sportSessionData.maxParticipants?.toString() || "");
+    setDifficultyLevel(sportSessionData.difficultyLevel || "aucun");
+    setOnlyBlindOrVisuallyImpaired(
+      sportSessionData.onlyBlindOrVisuallyImpaired || false
+    );
+  }, [sportSessionData]);
 
+  const handleNext = () => {
+    const participants = parseInt(maxParticipants, 10);
     if (isNaN(participants) || participants < 1 || participants > 30) {
       setError("Le nombre de participants doit être compris entre 1 et 30.");
       return;
     }
 
-    if (maxParticipants) {
-      dispatch(
-        setSportSessionData({
-          maxParticipants: participants, // ensure it's a number
-          difficultyLevel,
-          onlyBlindOrVisuallyImpaired,
-        })
-      );
-      console.log(setSportSessionData());
-      console.log("userData:", userData);
-      navigation.navigate("ThirdStepSportSessionPage");
-    }
+    dispatch(
+      setSportSessionData({
+        maxParticipants: participants,
+        difficultyLevel,
+        onlyBlindOrVisuallyImpaired,
+      })
+    );
+    navigation.navigate("ThirdStepSportSessionPage");
   };
 
   return (
@@ -60,50 +68,21 @@ const SecondStepScreen = () => {
             marginVertical: 10,
           }}
         />
-        {error ? <Text style={{ color: "red" }}>{error}</Text> : null}
+        {error && <Text style={{ color: "red" }}>{error}</Text>}
         <Text>Difficulty Level</Text>
-        <TouchableOpacity
-          onPress={() => setDifficultyLevel("aucun")}
-          style={{
-            backgroundColor: difficultyLevel === "aucun" ? "blue" : "gray",
-            padding: 10,
-            borderRadius: 5,
-          }}
-        >
-          <Text style={{ color: "white" }}>None</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setDifficultyLevel("débutant")}
-          style={{
-            backgroundColor: difficultyLevel === "débutant" ? "blue" : "gray",
-            padding: 10,
-            borderRadius: 5,
-          }}
-        >
-          <Text style={{ color: "white" }}>Débutant</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setDifficultyLevel("intermédiaire")}
-          style={{
-            backgroundColor:
-              difficultyLevel === "intermédiaire" ? "blue" : "gray",
-            padding: 10,
-            borderRadius: 5,
-          }}
-        >
-          <Text style={{ color: "white" }}>Intermédiate</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setDifficultyLevel("haut_niveau")}
-          style={{
-            backgroundColor:
-              difficultyLevel === "haut_niveau" ? "blue" : "gray",
-            padding: 10,
-            borderRadius: 5,
-          }}
-        >
-          <Text style={{ color: "white" }}>Haut Niveau</Text>
-        </TouchableOpacity>
+        {["aucun", "débutant", "intermédiaire", "haut_niveau"].map((level) => (
+          <TouchableOpacity
+            key={level}
+            onPress={() => setDifficultyLevel(level)}
+            style={{
+              backgroundColor: difficultyLevel === level ? "blue" : "gray",
+              padding: 10,
+              borderRadius: 5,
+            }}
+          >
+            <Text style={{ color: "white" }}>{level}</Text>
+          </TouchableOpacity>
+        ))}
         <View
           style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}
         >

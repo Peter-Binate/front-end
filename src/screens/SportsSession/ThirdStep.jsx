@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import {
   SafeAreaView,
   Text,
@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useAppDispatch } from "@/Redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/Redux/hooks";
 import { setSportSessionData } from "@/Redux/Slices/sportSessionSlice";
 import * as yup from "yup";
 import { useFormik } from "formik";
@@ -25,16 +25,27 @@ const validationSchema = yup.object().shape({
 const ThirdStepScreen = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
-  const [description, setDescription] = useState("");
+  const sportSessionData = useAppSelector(
+    (state) => state.sportSession.sportSessionData
+  );
+  const isEditing = useAppSelector((state) => state.sportSession.isEditing);
 
   const formik = useFormik({
-    initialValues: { description: "" },
-    validationSchema: validationSchema,
+    initialValues: { description: sportSessionData.description || "" },
+    validationSchema,
     onSubmit: (values) => {
       dispatch(setSportSessionData({ description: values.description }));
       navigation.navigate("FourthStepSportSessionPage");
     },
+    enableReinitialize: true, // Important to reinitialize form when initialValues change
   });
+
+  useEffect(() => {
+    // Update Formik initial values when editing
+    if (isEditing) {
+      formik.setFieldValue("description", sportSessionData.description || "");
+    }
+  }, [isEditing, sportSessionData.description]);
 
   return (
     <SafeAreaView style={{ flex: 1, marginTop: 100 }}>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   TouchableOpacity,
@@ -7,8 +7,11 @@ import {
   View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useAppDispatch } from "@/Redux/hooks";
-import { setSportSessionData } from "@/Redux/Slices/sportSessionSlice";
+import { useAppDispatch, useAppSelector } from "@/Redux/hooks";
+import {
+  setSportSessionData,
+  setIsEditing,
+} from "@/Redux/Slices/sportSessionSlice";
 
 const sportsData = [
   { id: 1, name: "Football", icon: "⚽" },
@@ -22,16 +25,27 @@ const sportsData = [
 const FirstStepScreen = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
-  const [selectedSportId, setSelectedSportId] = useState(null);
+  const { sportSessionData, isEditing } = useAppSelector(
+    (state) => state.sportSession
+  );
+  const [selectedSportId, setSelectedSportId] = useState(
+    sportSessionData.sportId || null
+  );
+
+  useEffect(() => {
+    if (isEditing && sportSessionData.sportId) {
+      setSelectedSportId(sportSessionData.sportId);
+    }
+  }, [isEditing, sportSessionData.sportId]);
 
   const handleSportSelect = (id) => {
     setSelectedSportId(id);
+    dispatch(setSportSessionData({ sportId: id }));
   };
 
   const handleNext = () => {
     if (selectedSportId !== null) {
-      dispatch(setSportSessionData({ sportId: selectedSportId }));
-      console.log("selectedSport: ", selectedSportId);
+      console.log("Selected sport:", selectedSportId);
       navigation.navigate("SecondStepSportSessionPage");
     } else {
       console.error("Please select a sport before proceeding.");
