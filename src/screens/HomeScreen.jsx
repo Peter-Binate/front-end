@@ -34,7 +34,10 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
       <View style={styles.bottomButton}>
-        <TouchableOpacity style={styles.activityButton}>
+        <TouchableOpacity
+          style={styles.activityButton}
+          onPress={() => navigation.navigate("LocationHandler")}
+        >
           <Text style={[styles.buttonText, { color: "black" }]}>
             Je <Text style={{ color: "#ff5c00" }}>recherche</Text> une activité
           </Text>
@@ -73,10 +76,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonText: {
-    fontSize: 35,
-    fontWeight: "800",
+    fontSize: 32,
     textTransform: "uppercase",
     textAlign: "center",
+    fontFamily: "LucioleBold",
   },
   logoutButton: {
     backgroundColor: "red",

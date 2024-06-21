@@ -1,66 +1,106 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Image, View, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 // Importation des stacks
 import HomeStack from "@/screens/Stacks/HomeStack";
 import ChannelStack from "@/screens/Stacks/ChannelStack";
 import FriendStack from "@/screens/Stacks/FriendStack";
+import UserStack from "@/screens/Stacks/UserStack";
+
+const Tab = createBottomTabNavigator();
+
+const tabIcons = {
+  Accueil: {
+    default: require("./../assets/images/navbar/home.png"),
+    focused: require("./../assets/images/navbar/home-focus.png"),
+  },
+  Amis: {
+    default: require("./../assets/images/navbar/friends.png"),
+    focused: require("./../assets/images/navbar/friends-focus.png"),
+  },
+  Discussion: {
+    default: require("./../assets/images/navbar/chat.png"),
+    focused: require("./../assets/images/navbar/chat-focus.png"),
+  },
+  User: {
+    default: require("./../assets/images/navbar/profil.png"),
+    focused: require("./../assets/images/navbar/profil-focus.png"),
+  },
+};
 
 export default function Connected() {
-  const Tab = createBottomTabNavigator();
-
-  // Fonction pour déterminer l'icone en fonction de la route
-  const getTabBarIcon = (focused, route) => {
-    switch (route.name) {
-      case "Accueil":
-        return focused ? "home" : "home-outline";
-      case "Amis":
-        return focused ? "person" : "person-outline";
-      case "Profil":
-        return focused ? "person-circle" : "person-circle-outline";
-      case "Discussion":
-        return focused ? "chatbubble" : "chatbubble-outline";
-      default:
-        return null;
-    }
-  };
-
   return (
     <View style={{ flex: 1 }}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons
-              name={getTabBarIcon(focused, route)}
-              size={size}
-              color={color}
-            />
-          ),
-          tabBarActiveTintColor: "#ff0000", // Utilisation d'une couleur hexadécimale directement
+          tabBarIcon: ({ focused }) => {
+            const icon = tabIcons[route.name][focused ? "focused" : "default"];
+            return (
+              <View style={[styles.iconLabelContainer]}>
+                <Image source={icon} style={styles.icon} />
+              </View>
+            );
+          },
+          tabBarActiveTintColor: "#0f0edd",
           tabBarInactiveTintColor: "#888",
           headerShown: false,
-          tabBarLabelStyle: {
-            paddingBottom: 10,
-            fontSize: 10,
-            marginTop: -5,
+          tabBarLabel: () => null,
+          tabBarStyle: {
+            display: "flex",
+            height: 70,
+            backgroundColor: "#0f0edd",
           },
-          tabBarStyle: [
-            {
-              display: "flex",
-              height: 70,
-            },
-            null,
-          ],
         })}
       >
-        <Tab.Screen name="Accueil" component={HomeStack} />
-        <Tab.Screen name="Amis" component={FriendStack} />
-        <Tab.Screen name="Discussion" component={ChannelStack} />
-        {/* <Tab.Screen name="Profil" component={ProfilStack} /> */}
-        {/* <Tab.Screen name="Message" component={MessageStack} /> */}
+        <Tab.Screen
+          name="Accueil"
+          component={HomeStack}
+          options={{
+            accessibilityLabel: "Accueil, onglet",
+          }}
+        />
+        <Tab.Screen
+          name="Amis"
+          component={FriendStack}
+          options={{
+            accessibilityLabel: "Amis, onglet",
+          }}
+        />
+        <Tab.Screen
+          name="Discussion"
+          component={ChannelStack}
+          options={{
+            accessibilityLabel: "Discussion, onglet",
+          }}
+        />
+        <Tab.Screen
+          name="User"
+          component={UserStack}
+          options={{
+            accessibilityLabel: "User, onglet",
+          }}
+        />
       </Tab.Navigator>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  iconLabelContainer: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 50,
+    width: 55,
+    height: 55,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+  },
+});

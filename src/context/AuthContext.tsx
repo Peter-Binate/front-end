@@ -68,9 +68,9 @@ export const AuthProvider = ({ children }: any) => {
     const loadToken = async () => {
       // Récupération du token user et du token stream stockés et affichage dans la console.
       const token =
-        userTokenKey && (await SecureStore.getItemAsync(userTokenKey));
+        userTokenKey && (await SecureStore.deleteItemAsync(userTokenKey));
       const streamToken =
-        streamTokenKey && (await SecureStore.getItemAsync(streamTokenKey));
+        streamTokenKey && (await SecureStore.deleteItemAsync(streamTokenKey));
 
       // console.log(`
       //   userToken stored:, ${token}

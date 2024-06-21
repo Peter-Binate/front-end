@@ -5,11 +5,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  StyleSheet,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppDispatch, useAppSelector } from "@/Redux/hooks";
 import { setSportSessionData } from "@/Redux/Slices/sportSessionSlice";
 import PlacesInput from "react-native-places-input";
+import Header from "@/components/Header/Header";
+import CustomButton from "@/components/Button";
+import MapView, { Marker } from "react-native-maps";
 
 const FourthStepScreen = () => {
   const navigation = useNavigation();
@@ -19,13 +24,12 @@ const FourthStepScreen = () => {
   );
   const [localLocation, setLocalLocation] = useState(location || "");
   const [localCoordinates, setLocalCoordinates] = useState({
-    latitude: latitude || null,
-    longitude: longitude || null,
+    latitude: latitude || 48.8566, // Default to Paris coordinates
+    longitude: longitude || 2.3522,
   });
   const [error, setError] = useState("");
   const GoogleMapsApiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  // On vérifie qu'on reçoit des informations de localisation valides
   const handleSelect = (place) => {
     if (
       !place ||
@@ -41,15 +45,6 @@ const FourthStepScreen = () => {
     const { lat, lng } = place.result.geometry.location;
     setLocalLocation(place.result.formatted_address);
     setLocalCoordinates({ latitude: lat, longitude: lng });
-    console.log(
-      "adresse: ",
-      place.result.formatted_address,
-      "latitude: ",
-      lat,
-      "\n",
-      "longitude: ",
-      lng
-    );
     setError("");
   };
 
@@ -84,70 +79,110 @@ const FourthStepScreen = () => {
   };
 
   return (
-    <View style={{ flex: 1, marginTop: 100 }}>
-      <View>
-        <Text>Location</Text>
-        <View style={{ width: "100%" }}>
-          <PlacesInput
-            googleApiKey={GoogleMapsApiKey}
-            placeHolder={"Entrez Votre Localisation"}
-            queryCountries={["fr"]}
-            language={"fr-FR"}
-            onSelect={handleSelect}
-            fetchDetails={true}
-            value={localLocation}
-            stylesContainer={{
-              position: "relative",
-              alignSelf: "stretch",
-              margin: 0,
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              shadowOpacity: 0,
-              borderColor: "#dedede",
-              borderWidth: 1,
-              marginBottom: 10,
-            }}
-            stylesList={{
-              top: 50,
-              borderColor: "#dedede",
-              borderLeftWidth: 1,
-              borderRightWidth: 1,
-              borderBottomWidth: 1,
-              left: -1,
-              right: -1,
-            }}
-          />
-          {error ? (
-            <Text style={{ color: "red", marginTop: 5 }}>{error}</Text>
-          ) : null}
-        </View>
-
-        <TouchableOpacity
+    <SafeAreaView style={styles.container}>
+      <Header
+        title="Où ?"
+        accessibilityLabel="Choix de localisation"
+        accessibilityHint="Inscrivez le lieu de la séance sportive"
+      />
+      <View style={styles.form}>
+        <Text
+          nativeID="Location"
+          aria-labelledby="Location"
+          style={styles.label}
+        >
+          Localisation
+        </Text>
+        <PlacesInput
+          googleApiKey={GoogleMapsApiKey}
+          placeHolder={"Entrez la localisation de la séance"}
+          queryCountries={["fr"]}
+          language={"fr-FR"}
+          onSelect={handleSelect}
+          fetchDetails={true}
+          value={localLocation}
+          stylesContainer={styles.placesInputContainer}
+          stylesList={styles.placesInputList}
+        />
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <MapView
+          style={styles.map}
+          region={{
+            latitude: localCoordinates.latitude,
+            longitude: localCoordinates.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          }}
+        >
+          <Marker coordinate={localCoordinates} />
+        </MapView>
+        <CustomButton
+          text="Suivant"
           onPress={handleNext}
           disabled={
             !localLocation ||
             !localCoordinates.latitude ||
             !localCoordinates.longitude
           }
-          style={{
-            backgroundColor:
-              localLocation &&
-              localCoordinates.latitude &&
-              localCoordinates.longitude
-                ? "blue"
-                : "gray",
-            padding: 10,
-            borderRadius: 5,
-            marginTop: 20,
-          }}
-        >
-          <Text style={{ color: "white" }}>Next</Text>
-        </TouchableOpacity>
+          accessibilityLabel="Bouton Suivant"
+          accessibilityHint="Cliquez ici pour accéder à l'étape suivante du formulaire d'inscription"
+          backgroundColor="#FFFFFF"
+          borderColor="#FF5C00"
+          textColor="#FF5C00"
+          width={250}
+        />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
+
+const height = Dimensions.get("window").height;
+const styles = StyleSheet.create({
+  container: {
+    height: height,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  form: {
+    width: "90%",
+    alignItems: "center",
+  },
+  label: {
+    fontSize: 14,
+    color: "#737373",
+    marginLeft: 8,
+    marginBottom: 2,
+    fontFamily: "LucioleRegular",
+    alignSelf: "flex-start",
+  },
+  placesInputContainer: {
+    width: "100%",
+    top: 30,
+    marginLeft: -7,
+    marginBottom: 10,
+    borderColor: "#dedede",
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  placesInputList: {
+    top: 50,
+    borderColor: "#dedede",
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    left: -1,
+    right: -1,
+  },
+  map: {
+    width: "100%",
+    height: 300,
+    marginVertical: 20,
+    marginTop: 100,
+  },
+  errorText: {
+    color: "red",
+    marginTop: 5,
+  },
+});
 
 export default FourthStepScreen;

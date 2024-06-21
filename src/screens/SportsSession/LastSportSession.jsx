@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  TextInput,
-  Button,
   Image,
+  ImageBackground,
   Alert,
+  Button,
 } from "react-native";
-import sportIcons from "./sportsIcons";
+import sportsData from "./sportsIcons"; // Remplacez par le bon chemin d'importation de sportsData
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@/context/AuthContext";
 import { useDispatch } from "react-redux";
@@ -18,20 +18,14 @@ import {
   setSportSessionData,
   setIsEditing,
 } from "@/Redux/Slices/sportSessionSlice";
+import backgroundImage from "@/assets/images/background.png";
 import axios from "axios";
+import { SafeAreaView } from "react-native-safe-area-context";
+import CustomButton from "@/components/Button";
 
 const LastSportSessionScreen = () => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const [location, setLocation] = useState(session ? session.location : "");
-  const [date, setDate] = useState(
-    session ? new Date(session.startDate).toLocaleDateString() : ""
-  );
-  const [time, setTime] = useState(
-    session ? new Date(session.startDate).toLocaleTimeString() : ""
-  );
-
   const [error, setError] = useState("");
 
   const { authState } = useAuth();
@@ -57,7 +51,7 @@ const LastSportSessionScreen = () => {
     };
 
     fetchLastSession();
-  }, []);
+  }, [authState]);
 
   const handleEditSession = () => {
     dispatch(setSportSessionData(session)); // Charger les données de la session dans Redux
@@ -69,12 +63,8 @@ const LastSportSessionScreen = () => {
     const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/sport-session/delete/`;
     try {
       await axios.delete(apiUrl, {
-        data: {
-          sessionId: session.id,
-        },
-        headers: {
-          Authorization: `Bearer ${authState?.token}`,
-        },
+        data: { sessionId: session.id },
+        headers: { Authorization: `Bearer ${authState?.token}` },
       });
       Alert.alert(
         "Session supprimée",
@@ -107,7 +97,7 @@ const LastSportSessionScreen = () => {
   }
 
   // Trouver l'icône en fonction du sportId
-  const sportIcon = sportIcons.find(
+  const sportIcon = sportsData.find(
     (icon) => icon.id === session.sport.id
   )?.icon;
 
@@ -117,66 +107,141 @@ const LastSportSessionScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <View>
-        {admin && (
-          <>
-            {admin.user.profilImage && (
-              <Image
-                source={{ uri: admin.user.profilImage }}
-                style={{ width: 50, height: 50 }}
-              />
-            )}
-          </>
-        )}
-        <Text>{admin.user.firstname}</Text>
-        <Text>{admin.user.lastname}</Text>
-      </View>
-      {sportIcon && <Text style={{ fontSize: 30 }}>{sportIcon}</Text>}
-
-      <Text style={styles.title}>{session.sport.sportName}</Text>
-      <Text>Date: {new Date(session.startDate).toLocaleDateString()}</Text>
-      <View>
-        <Text>Heure: {new Date(session.startDate).toLocaleTimeString()}</Text>
-        <Text>Localisation: {session.location}</Text>
-      </View>
-      <View>
-        <Text>
-          Nombre de participants: {session.members.length} /{" "}
-          {session.maxParticipants}
-        </Text>
-      </View>
-      <View>
-        <Text>
-          {session.description || "Pas de description pour l'instant."}
-        </Text>
-      </View>
-      <View>
-        <Button title="Modifier" onPress={handleEditSession} />
-        <Button title="Supprimer" onPress={handleDeleteSession} color="red" />
-      </View>
-    </View>
+    <SafeAreaView style={styles.mainContainer}>
+      <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
+        <View style={styles.contentContainer}>
+          {admin && (
+            <View style={styles.adminContainer}>
+              {admin.user.profilImage && (
+                <Image
+                  source={{ uri: admin.user.profilImage }}
+                  style={styles.adminImage}
+                />
+              )}
+            </View>
+          )}
+          {sportIcon && <Image source={sportIcon} style={styles.sportIcon} />}
+          <Text style={styles.dateTime}>
+            Date: {new Date(session.startDate).toLocaleDateString()}
+          </Text>
+          <Text style={styles.dateTime}>
+            Heure: {new Date(session.startDate).toLocaleTimeString()}
+          </Text>
+          <Text style={styles.location}>Localisation: {session.location}</Text>
+          <View style={{ display: "flex", flexDirection: "column" }}>
+            <Text style={styles.participants}>Nombre de participants:</Text>
+            <Text style={styles.participants}>
+              {session.members.length} / {session.maxParticipants}
+            </Text>
+          </View>
+          <Text style={styles.description}>
+            {session.description || "Pas de description pour l'instant."}
+          </Text>
+          <View style={styles.buttonContainer}>
+            <CustomButton
+              text="Modifier l'annonce"
+              onPress={handleEditSession}
+              accessibilityLabel="Bouton Suivant"
+              accessibilityHint="Cliquez ici pour accéder à l'étape suivante du formulaire d'inscription"
+              backgroundColor="#FFFFFF"
+              borderColor="#FF5C00"
+              textColor="#FF5C00"
+              width={250}
+            />
+            <CustomButton
+              text="Annuler l'annonce"
+              onPress={handleDeleteSession}
+              accessibilityLabel="Bouton Suivant"
+              accessibilityHint="Cliquez ici pour accéder à l'étape suivante du formulaire d'inscription"
+              backgroundColor="#FFFFFF"
+              borderColor="#0f0edd"
+              textColor="#0f0edd"
+              width={250}
+            />
+          </View>
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
+    flex: 1,
+    resizeMode: "cover",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backgroundImage: {
+    flex: 1,
+    width: "100%",
+    resizeMode: "cover",
+  },
+  contentContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    paddingLeft: 20, // Ajustez cette valeur pour contrôler le décalage
+  },
+  adminContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  adminImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  sportIcon: {
+    width: 250,
+    height: 250,
+    marginTop: 50,
+    marginBottom: 60,
+    resizeMode: "contain",
   },
   title: {
-    fontSize: 20,
+    fontSize: 40,
     fontWeight: "bold",
     marginBottom: 10,
+    fontFamily: "LucioleBold",
   },
-  input: {
-    height: 40,
-    margin: 12,
-    borderWidth: 1,
-    padding: 10,
-    width: 200,
+  textBold: {
+    fontSize: 16,
+    fontFamily: "LucioleBold",
+    fontWeight: "bold",
+  },
+  buttonContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    width: "100%",
+    marginTop: 20,
+  },
+  dateTime: {
+    fontSize: 16,
+    marginBottom: 5,
+    fontWeight: "bold",
+    fontFamily: "LucioleBold",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  location: {
+    fontSize: 14,
+    marginBottom: 10,
+    fontFamily: "LucioleBold",
+    textAlign: "center",
+  },
+  description: {
+    fontSize: 16,
+    marginTop: 10,
+    textAlign: "center",
+    fontFamily: "LucioleRegular",
+  },
+  participants: {
+    fontSize: 16,
+    textAlign: "center",
+    fontFamily: "LucioleBold",
   },
 });
 

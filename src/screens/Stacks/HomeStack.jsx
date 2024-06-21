@@ -6,6 +6,7 @@ import ThirdStepScreen from "@/screens/SportsSession/ThirdStep";
 import FourthStepScreen from "@/screens/SportsSession/FourthStep";
 import FifthStepScreen from "@/screens/SportsSession/FifthStep";
 import LastSportSessionScreen from "@/screens/SportsSession/LastSportSession";
+import LocationHandlerScreen from "@/screens/SportsSession/LocationHandler";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +18,7 @@ const HomeStack = () => {
       }}
     >
       <Stack.Screen name="Home" component={HomeScreen} />
+
       <Stack.Screen
         name="FirstStepSportSessionPage"
         component={FirstStepScreen}
@@ -41,6 +43,7 @@ const HomeStack = () => {
         name="LastSportSessionPage"
         component={LastSportSessionScreen}
       />
+      <Stack.Screen name="LocationHandler" component={LocationHandlerScreen} />
     </Stack.Navigator>
   );
 };
