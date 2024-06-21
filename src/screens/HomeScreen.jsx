@@ -12,22 +12,35 @@ import { useAuth } from "@/context/AuthContext";
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { onLogout } = useAuth();
-
+  const { authState } = useAuth();
   const handleLogout = async () => {
-    await onLogout();
+    const result = await onLogout();
+    if (result?.error) {
+      console.error("Result: ", result.error);
+      setLogoutError(result.error);
+    }
   };
 
   return (
-    <SafeAreaView className="flex-1 justify-center items-center">
-      <View>
-        <Text className="text-2xl font-bold border-2 border-red-300">
-          Home Screen
-        </Text>
+    <SafeAreaView style={styles.mainContent}>
+      <View style={styles.topButton}>
+        <TouchableOpacity
+          style={styles.activityButton}
+          onPress={() => navigation.navigate("FirstStepSportSessionPage")}
+        >
+          <Text style={[styles.buttonText, { color: "black" }]}>
+            Je <Text style={{ color: "#0f0edd" }}>propose</Text> une activité
+          </Text>
+        </TouchableOpacity>
       </View>
-      <View>
-        <Text>Welcome, you are logged in!</Text>
-        <TouchableOpacity>
-          <Text>Loggout</Text>
+      <View style={styles.bottomButton}>
+        <TouchableOpacity
+          style={styles.activityButton}
+          onPress={() => navigation.navigate("LocationHandler")}
+        >
+          <Text style={[styles.buttonText, { color: "black" }]}>
+            Je <Text style={{ color: "#ff5c00" }}>recherche</Text> une activité
+          </Text>
         </TouchableOpacity>
       </View>
       <View style={{ padding: 10 }}>
@@ -40,6 +53,34 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  mainContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activityButton: {
+    flexDirection: "column",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#343434",
+    width: 294,
+    height: 294,
+    padding: 10,
+  },
+  topButton: {
+    marginTop: 70,
+  },
+  bottomButton: {
+    marginTop: 20,
+  },
+  buttonText: {
+    fontSize: 32,
+    textTransform: "uppercase",
+    textAlign: "center",
+    fontFamily: "LucioleBold",
+  },
   logoutButton: {
     backgroundColor: "red",
     padding: 10,

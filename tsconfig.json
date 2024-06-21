@@ -8,20 +8,3 @@
   },
   "extends": "expo/tsconfig.base"
 }
-
-// {
-//   "extends": "expo/tsconfig.base",
-//   "compilerOptions": {
-//     "strict": true,
-//     "baseUrl": ".",
-//     "paths": {
-//       "@/*": ["src/*"]
-//     }
-//   },
-//   "include": [
-//     "src/**/*",
-//     "declarations.d.ts",
-//     "screens/Login",
-//     "screens/Message"
-//   ]
-// }

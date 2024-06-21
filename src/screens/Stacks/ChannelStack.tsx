@@ -33,7 +33,7 @@ const ChannelStack = () => {
                 name="Conversations"
                 component={ChannelListScreen}
               />
-              <Stack.Screen name="Discussion" component={ChannelScreen} />
+              <Stack.Screen name="DiscussionPage" component={ChannelScreen} />
             </Stack.Navigator>
           </Chat>
         </OverlayProvider>

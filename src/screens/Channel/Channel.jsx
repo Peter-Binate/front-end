@@ -6,9 +6,9 @@ import { useAppContext } from "@/context/ChatContext";
 const ChannelScreen = () => {
   const { channel } = useAppContext();
 
-  if (!channel) {
-    return <Text>Loading channel...</Text>;
-  }
+  // if (!channel) {
+  //   return <Text>Loading channel...</Text>;
+  // }
 
   return (
     <Channel channel={channel}>

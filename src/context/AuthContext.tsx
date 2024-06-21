@@ -7,8 +7,6 @@ import axios from "axios";
 // Importation de SecureStore d'Expo pour stocker les données de manière sécurisée.
 import * as SecureStore from "expo-secure-store";
 
-import { useAppDispatch, useAppSelector } from "@/Redux/hooks";
-
 // Déclaration de l'interface pour les propriétés du contexte d'authentification.
 interface AuthProps {
   authState?: {
@@ -70,9 +68,9 @@ export const AuthProvider = ({ children }: any) => {
     const loadToken = async () => {
       // Récupération du token user et du token stream stockés et affichage dans la console.
       const token =
-        userTokenKey && (await SecureStore.getItemAsync(userTokenKey));
+        userTokenKey && (await SecureStore.deleteItemAsync(userTokenKey));
       const streamToken =
-        streamTokenKey && (await SecureStore.getItemAsync(streamTokenKey));
+        streamTokenKey && (await SecureStore.deleteItemAsync(streamTokenKey));
 
       // console.log(`
       //   userToken stored:, ${token}
@@ -103,7 +101,10 @@ export const AuthProvider = ({ children }: any) => {
     try {
       // console.log("Attempting to register with email:", email);
       // Envoi d'une requête POST à l'API pour enregistrer l'utilisateur avec email et password.
-      const response = await axios.post(`${apiUrl}/register`, registerUserData);
+      const response = await axios.post(
+        `${apiUrl}/api/auth/register`,
+        registerUserData
+      );
       // Retour des données de la réponse de l'API.
       console.log("Registration response:", response);
       return { error: false };
@@ -127,7 +128,9 @@ export const AuthProvider = ({ children }: any) => {
   // Déclaration de la fonction asynchrone pour vérifier si un email existe déjà
   const checkEmail = async (email: string) => {
     try {
-      const response = await axios.post(`${apiUrl}/check-email`, { email });
+      const response = await axios.post(`${apiUrl}/api/auth/check-email`, {
+        email,
+      });
       return response.data.exists;
     } catch (error) {
       console.error("Email check error:", error);
@@ -139,7 +142,11 @@ export const AuthProvider = ({ children }: any) => {
   const login = async (email: string, password: string) => {
     try {
       // Envoi d'une requête POST à l'API pour connecter l'utilisateur avec email et password.
-      const result = await axios.post(`${apiUrl}/login`, { email, password });
+      const result = await axios.post(`${apiUrl}/api/auth/login`, {
+        email,
+        password,
+      });
+
       // Extraction du token de la réponse de l'API et affichage dans la console.
       const token = result.data.token.token;
       const streamToken = result.data.streamToken;
@@ -195,14 +202,21 @@ export const AuthProvider = ({ children }: any) => {
   const logout = async () => {
     try {
       // Envoi d'une requête DELETE à l'API pour déconnecter l'utilisateur.
-      await axios.delete(`${apiUrl}/logout`);
+      const response = await axios.delete(`${apiUrl}/api/auth/logout`, {
+        headers: { Authorization: `Bearer ${authState.token}` },
+      });
+
+      // Vérifiez si la déconnexion a réussi
+      if (response.status !== 200) {
+        throw new Error("Failed to logout from the server");
+      }
 
       // Suppression du token de SecureStore après déconnexion réussie.
       userTokenKey && (await SecureStore.deleteItemAsync(userTokenKey));
       streamTokenKey && (await SecureStore.deleteItemAsync(streamTokenKey));
 
       // Réinitialisation des en-têtes par défaut d'axios.
-      axios.defaults.headers.common["Authorization"] = "";
+      delete axios.defaults.headers.common["Authorization"];
 
       // Mise à jour de l'état authState pour refléter la déconnexion.
       setAuthState({
@@ -211,9 +225,20 @@ export const AuthProvider = ({ children }: any) => {
         streamToken: null,
         user: null,
       });
+
+      console.log("Successfully logged out and cleared tokens.");
     } catch (error: any) {
       console.error("Logout error:", error);
-      return { error: "Failed to logout" };
+      if (error.response) {
+        console.log(error.response.data);
+        console.log(error.response.status);
+        console.log("header: ", error.response.headers);
+      } else if (error.request) {
+        console.log("request error: ", error.request);
+      } else {
+        console.log("message Error: ", error.message);
+      }
+      console.log(error.config);
     }
   };
 

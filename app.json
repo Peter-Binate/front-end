@@ -4,10 +4,10 @@
     "slug": "blinksport",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/icon.png",
+    "icon": "./assets/applogo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./src/assets/splash.png",
+      "image": "./assets/applogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -15,16 +15,21 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./src/assets/adaptive-icon.png",
+      "adaptapplogo": {
+        "foregroundImage": "./assets/applogo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tersco.blinksport"
+      "package": "com.tersco.blinksport",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyB0KJXV8FE5iadmhD20CVLM4xjD6Mgz__g"
+        }
+      }
     },
     "web": {
       "favicon": "./src/assets/favicon.png"
     },
-    "plugins": ["expo-secure-store"],
+    "plugins": ["expo-secure-store", "expo-font"],
     "extra": {
       "eas": {
         "projectId": "205b5a01-82ef-4cce-bcd1-c27a63a8f4d5"

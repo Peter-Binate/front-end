@@ -27,7 +27,7 @@ const ChannelListScreen = () => {
       sort={sort}
       onSelect={(channel) => {
         setChannel(channel);
-        navigation.navigate("Discussion");
+        navigation.navigate("DiscussionPage");
       }}
     />
   );
